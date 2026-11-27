@@ -33,7 +33,7 @@
 ### 🧩 Uso para Desarrolladores (`heliocentric.js`)
 Puedes integrar el motor matemático en tu web mediante script:
 ```html
-<script src="https://github.ioheliocentric.js"></script>
+<script src="https://github.io"></script>
 <script>
   const hoy = Heliocentric.now();
   console.log(hoy.formatted);  // Fecha completa + hora TUH
