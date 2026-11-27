@@ -34,7 +34,7 @@
 Puedes integrar el motor matemático en tu web mediante script:
 ```html
 
-<script src="https://kautrs.github.io/calendario-heliocentrico.js.js"></script>
+<script src="https://kautrs.github.io/calendario-heliocentrico/.js"></script>
 <script>
   const hoy = Heliocentric.now();
   console.log(hoy.formatted);  // Fecha completa + hora TUH
