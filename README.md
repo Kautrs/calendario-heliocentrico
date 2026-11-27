@@ -41,3 +41,19 @@ A lo largo de la historia, la humanidad intentó sin éxito conciliar la **simet
 
 * **En línea:** Abre la URL de **GitHub Pages** de este repositorio y selecciona **"Instalar aplicación / Agregar a pantalla de inicio"**.
 * **En local:** Descarga `index.html`, `manifest.json` y `sw.js` en una misma carpeta y ábrelos en cualquier navegador moderno.
+
+---
+
+### 🧩 Uso para Desarrolladores (`heliocentric.js`)
+
+Cualquier proyecto web puede integrar el motor matemático del **Calendario Heliocéntrico** en 2 líneas:
+
+```html
+<script src="https://github.io"></script>
+<script>
+  const hoy = Heliocentric.now();
+  console.log(hoy.formatted);  // Fecha completa + hora TUH
+  console.log(hoy.workStatus); // "WORK", "HALF_REST" o "REST"
+</script>
+```
+
