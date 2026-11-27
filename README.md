@@ -33,10 +33,10 @@
 ### 🧩 Uso para Desarrolladores (`heliocentric.js`)
 Puedes integrar el motor matemático en tu web mediante script:
 ```html
-<script src="https://github.io"></script>
+
+<script src="https://kautrs.github.io/calendario-heliocentrico.js.js"></script>
 <script>
   const hoy = Heliocentric.now();
   console.log(hoy.formatted);  // Fecha completa + hora TUH
   console.log(hoy.workStatus); // "WORK", "HALF_REST" o "REST"
 </script>
-```
