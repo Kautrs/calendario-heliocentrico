@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090d16">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Calendario Heliocéntrico • Síntesis Cronométrica 365">
+<meta property="og:description" content="365 días simétricos, décadas de 10 días (3d trabajo + ½ pausa ámbar + 3d trabajo + 3d descanso) y segundos elásticos continuos.">
+<title>Calendario Heliocéntrico • v1.2</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#090d16;color:#f3f4f6;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;margin:0;padding:16px}
+body.kiosk{align-items:center;background:#000}
+body.kiosk .card{background:#000;border-color:transparent;max-width:600px;padding:1rem;display:flex;flex-direction:column;align-items:center}
+body.kiosk .clock{font-size:4.4rem}
+body.kiosk .hide-k{display:none!important}
+body.kiosk .analog-box{order:-1;background:#000;border-color:transparent;margin-top:0;margin-bottom:.4rem;padding:.4rem}
+body.kiosk .analog-box svg{width:230px;height:230px}
+body.kiosk .btn-row{margin-top:.8rem}
+.card{background:#111827;border:1px solid #1f2937;padding:1.8rem 1.4rem;border-radius:24px;max-width:460px;width:100%;text-align:center;margin:auto}
+.top-bar{display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:.8rem}
+.badge{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.3);font-weight:600;padding:5px 14px;border-radius:999px;font-size:.72rem;display:inline-block}
+.badge.sim{background:rgba(34,197,94,.18);color:#4ade80;border-color:rgba(34,197,94,.45)}
+.lang-btn{background:#090d16;color:#9ca3af;border:1px solid #374151;padding:4px 10px;border-radius:999px;font-size:.7rem;font-weight:700;cursor:pointer}
+.lang-btn:hover{color:#f3f4f6;border-color:#38bdf8}
+.clock{font-size:3.1rem;font-weight:700;margin:.1rem 0;font-variant-numeric:tabular-nums}
+.date-main{font-size:1.18rem;font-weight:600;color:#38bdf8;margin-bottom:.2rem}
+.decade-sub{font-size:.88rem;font-weight:600;color:#fbbf24;margin-bottom:.25rem}
+.date-sub{font-size:.82rem;color:#9ca3af;margin-bottom:.5rem}
+.tuo-pill{display:inline-block;background:#090d16;border:1px solid #374151;color:#a7f3d0;font-size:.76rem;font-weight:600;padding:4px 12px;border-radius:999px;margin-bottom:.7rem}
+.era-banner{display:flex;align-items:center;justify-content:center;height:42px;background:rgba(31,41,55,.45);border:1px solid #1f2937;color:#9ca3af;font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:12px;margin-bottom:.8rem;overflow:hidden}
+.era-banner.show{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.4);color:#fde68a}
+.orbit-wrap{background:#090d16;border:1px solid #1f2937;border-radius:14px;padding:.7rem .8rem;margin-bottom:1rem;display:flex;align-items:center;gap:8px;text-align:left}
+.orbit-info{flex:1;min-width:0}
+.orbit-pct{font-size:.8rem;font-weight:700;color:#f3f4f6}
+.orbit-evt{font-size:.72rem;color:#38bdf8;margin-top:2px;min-height:1.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spheres{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.btn-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.btn{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.35);padding:7px 10px;border-radius:12px;font-size:.74rem;font-weight:600;cursor:pointer}
+.btn-gold{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35)}
+.btn-green{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.4)}
+.btn-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.4)}
+.btn-purp{background:rgba(168,85,247,.16);color:#d8b4fe;border:1px solid rgba(168,85,247,.45)}
+.btn-on{background:rgba(16,185,129,.25);color:#34d399;border-color:rgba(16,185,129,.6)}
+.analog-box,.almanac,.sim-box{display:none;margin-top:1rem;background:#090d16;border:1px solid #1f2937;border-radius:16px;padding:1rem}
+.analog-box.open,.almanac.open,.sim-box.open{display:block}
+.analog-box,.sim-box{text-align:center}
+.almanac{text-align:left}
+.sim-slider{width:100%;margin:10px 0;accent-color:#22c55e;cursor:pointer}
+.sim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.analog-leg{font-size:.72rem;color:#9ca3af;margin-top:8px}
+.alm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.alm-title{font-size:.92rem;font-weight:700;color:#38bdf8}
+.alm-legend{font-size:.7rem;color:#9ca3af;margin-bottom:.6rem;line-height:1.4}
+.alm-note{background:#111827;border:1px solid #374151;border-radius:10px;padding:6px 10px;font-size:.76rem;line-height:1.25;color:#fbbf24;margin-bottom:.8rem;height:3.8em;display:flex;align-items:center;overflow:hidden}
+.alm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:8px}
+.m-name{font-size:.74rem;font-weight:700;color:#e5e7eb;margin-bottom:5px;display:flex;justify-content:space-between}
+.m-days{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.d-cell{font-size:.6rem;text-align:center;padding:3px 0;border-radius:4px;background:#090d16;color:#9ca3af;cursor:pointer;user-select:none}
+.d-work{border-bottom:2px solid #22c55e;color:#bbf7d0}
+.d-half{border-bottom:2px solid #f97316;color:#fed7aa}
+.d-rest{border-bottom:2px solid #ef4444;color:#fecaca}
+.d-astro{border-top:1.5px solid #fbbf24;font-weight:700}
+.d-leap{border:1px solid #fbbf24;border-bottom:2px solid #ef4444;color:#fbbf24;font-weight:700}
+.d-today{background:#38bdf8!important;color:#090d16!important;font-weight:800}
+.d-search{background:#a855f7!important;color:#fff!important;font-weight:800;box-shadow:0 0 6px #a855f7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;margin-top:1rem}
+.box{background:#090d16;border:1px solid #1f2937;padding:.75rem;border-radius:12px}
+.box-title{font-size:.72rem;color:#9ca3af;margin-bottom:3px}
+.box-val{font-size:.96rem;font-weight:600}
+.conv-box{margin-top:1rem;background:#090d16;border:1px solid #1f2937;border-radius:14px;padding:1rem;text-align:center}
+input,select{background:#111827;color:#fff;border:1px solid #374151;padding:8px 10px;border-radius:10px;font-size:.88rem;color-scheme:dark}
+.ics-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.conv-res{margin-top:.7rem;font-size:.92rem;font-weight:600;color:#e9d5ff}
+details{margin-top:.9rem;text-align:left;background:#090d16;border:1px solid #1f2937;border-radius:12px;padding:.75rem 1rem;font-size:.81rem;color:#d1d5db;line-height:1.45}
+summary{cursor:pointer;font-weight:600;color:#38bdf8}
+details p{margin:.6rem 0 0}
+</style>
+</head>
+<!-- FIN A -->
+
+
+
+
+
+<body>
+<div class="card">
+  <div class="top-bar hide-k">
+    <div class="badge" id="topBadge">CALENDARIO HELIOCÉNTRICO • v1.2</div>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">🌐 EN</button>
+  </div>
+  <div class="clock" id="elasticClock">--:--:--</div>
+  <div class="date-main" id="orbitalDate">Iniciando...</div>
+  <div class="decade-sub" id="decadeInfo">--</div>
+  <div class="date-sub hide-k" id="gregorianRef">--</div>
+  <div class="tuo-pill" id="tuoDisplay">🌐 TUH: --:--:--</div>
+  <div class="era-banner" id="eraBanner">🌌 Órbita estable • Flujo cronométrico regular</div>
+  <div class="orbit-wrap">
+    <svg width="66" height="44" viewBox="0 0 82 52" style="flex-shrink:0">
+      <ellipse cx="41" cy="26" rx="35" ry="20" fill="none" stroke="#1f2937" stroke-width="3.5"/>
+      <ellipse id="orbitArc" cx="41" cy="26" rx="35" ry="20" fill="none" stroke="#38bdf8" stroke-width="3.5" stroke-dasharray="176.5" stroke-dashoffset="176.5" stroke-linecap="round"/>
+      <circle cx="57" cy="26" r="5.5" fill="#fbbf24"/>
+      <circle id="earthDot" cx="76" cy="26" r="4" fill="#38bdf8"/>
+    </svg>
+    <div class="orbit-info">
+      <div class="orbit-pct" id="orbitPct">Día -- / 365 (0.0%)</div>
+      <div class="orbit-evt" id="orbitEvt">--</div>
+      <div id="moonName" style="font-size:.71rem;color:#e5e7eb;font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🌕 --</div>
+      <div style="font-size:.69rem;color:#9ca3af;margin-top:2px;font-variant-numeric:tabular-nums">
+        <span id="moonPct" style="display:inline-block;width:48px">💡 --%</span>
+        <span id="moonAge" style="display:inline-block;width:52px">🌑 --d</span>
+      </div>
+    </div>
+    <div class="spheres">
+      <canvas id="earthGlobe" width="84" height="84" style="width:36px;height:36px;border-radius:50%"></canvas>
+      <svg width="36" height="36" viewBox="0 0 100 100">
+        <defs>
+          <clipPath id="moonClip"><circle cx="50" cy="50" r="42"/></clipPath>
+          <filter id="moonBlur"><feGaussianBlur stdDeviation="1.6"/></filter>
+        </defs>
+        <circle cx="50" cy="50" r="42" fill="#182030" stroke="#374151" stroke-width="2.5"/>
+        <g clip-path="url(#moonClip)" filter="url(#moonBlur)">
+          <path id="moonBase" d="" fill="#f3f4f6"/>
+          <ellipse id="moonTerm" cx="50" cy="50" rx="0" ry="42" fill="#f3f4f6"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn hide-k" id="copyBtn" onclick="copyTs()">📋 Timestamp</button>
+    <button class="btn" id="anaBtn" onclick="toggleAnalog()">🕰️ Esfera</button>
+    <button class="btn btn-gold hide-k" id="almBtn" onclick="toggleAlmanac()">📅 Año 365</button>
+    <button class="btn btn-green hide-k" id="simBtn" onclick="toggleSim()">🧭 Simular</button>
+    <button class="btn" id="kioskBtn" onclick="toggleKiosk()">🖥️ Kiosco</button>
+    <button class="btn" id="sndBtn" onclick="toggleSound()">🔇 Pulso</button>
+  </div>
+
+
+  <div class="sim-box hide-k" id="simBox">
+
+    <div style="font-size:.84rem;font-weight:700;color:#4ade80" id="simTitle">🧭 Simulador de Posición Heliocéntrica</div>
+    <div style="font-size:.71rem;color:#9ca3af;margin-top:2px" id="simSub">Recorre los 365 días del ciclo o ajusta por día, mes o año</div>
+    <input type="range" class="sim-slider" id="daySlider" min="1" max="365" value="65" oninput="slideDay(this.value)">
+
+
+      <div class="sim-grid">
+      <button class="btn" id="bM1Y" onclick="jumpDays(-365)">-1 Año</button>
+      <button class="btn" id="bM1M" onclick="jumpDays(-30)">-1 Mes</button>
+      <button class="btn" id="bM1D" onclick="jumpDays(-1)">-1 Día</button>
+      <button class="btn btn-green" id="bP1D" onclick="jumpDays(1)">+1 Día</button>
+      <button class="btn btn-green" id="bP1M" onclick="jumpDays(30)">+1 Mes</button>
+      <button class="btn btn-green" id="bP1Y" onclick="jumpDays(365)">+1 Año</button>
+    </div>
+
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+      <button class="btn" id="bM6H" onclick="jumpDays(-0.25)">-6 Horas</button>
+      <button class="btn btn-green" id="bP6H" onclick="jumpDays(0.25)">+6 Horas</button>
+    </div>
+    <button class="btn btn-red" id="resetSimBtn" style="margin-top:8px;width:100%" onclick="resetSim()">⏹ Restablecer a Hoy</button>
+
+  </div>
+  <div class="analog-box" id="analogBox">
+    <svg width="170" height="170" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#111827" stroke="#374151" stroke-width="2"/>
+      <circle cx="60" cy="60" r="51" fill="none" stroke="#374151" stroke-width="2.5" stroke-dasharray="0.6 4.74"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#9ca3af" stroke-width="4.5" stroke-dasharray="1.2 24.98"/>
+      <g fill="#9ca3af" font-size="7" font-weight="700" text-anchor="middle" dominant-baseline="central">
+        <text x="60" y="18">12</text><text x="81" y="24">1</text><text x="96" y="39">2</text>
+        <text x="102" y="60">3</text><text x="96" y="81">4</text><text x="81" y="96">5</text>
+        <text x="60" y="102">6</text><text x="39" y="96">7</text><text x="24" y="81">8</text>
+        <text x="18" y="60">9</text><text x="24" y="39">10</text><text x="39" y="24">11</text>
+      </g>
+      <line id="hHand" x1="60" y1="60" x2="60" y2="33" stroke="#f3f4f6" stroke-width="3.5" stroke-linecap="round"/>
+      <line id="mHand" x1="60" y1="60" x2="60" y2="22" stroke="#e5e7eb" stroke-width="2.2" stroke-linecap="round"/>
+      <line id="cSecHand" x1="60" y1="66" x2="60" y2="15" stroke="#6b7280" stroke-width="1.2" stroke-dasharray="3 2"/>
+      <line id="eSecHand" x1="60" y1="68" x2="60" y2="14" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="60" cy="60" r="3" fill="#38bdf8"/>
+    </svg>
+    <div class="analog-leg" id="anaLeg">🔵 Segundo Elástico Heliocéntrico • ⚪ Segundo Civil (Fantasma)</div>
+  </div>
+  <div class="almanac hide-k" id="almanacBox">
+    <div class="alm-head">
+      <div class="alm-title" id="almTitle">Almanaque Heliocéntrico</div>
+      <span style="font-size:.72rem;color:#9ca3af" id="almSecular">--</span>
+    </div>
+    <div class="alm-legend" id="almLegend">🔵 Hoy • 🟣 Buscada • 🟢 Trabajo • 🟠 Medio • 🔴 Descanso</div>
+    <div class="alm-note" id="almNote">👆 Toca cualquier día para ver su estado laboral y fecha civil.</div>
+    <div class="alm-grid" id="almGrid"></div>
+    <button class="btn" id="resetYearBtn" style="display:none;margin-top:8px;width:100%" onclick="resetAlmanacToday()">↩ Volver al año actual</button>
+  </div>
+  <div class="grid hide-k">
+    <div class="box"><div class="box-title" id="localLabel">Hora Civil</div><div class="box-val" id="normalClock">--:--:--</div></div>
+    <div class="box"><div class="box-title" id="uiOffset">Desfase Acumulado</div><div class="box-val" id="offsetInfo">--</div></div>
+    <div class="box"><div class="box-title" id="uiTick">Duración del Segundo</div><div class="box-val" id="tickInfo">--</div></div>
+    <div class="box"><div class="box-title" id="uiAdj">Ajuste Continuo (Hoy)</div><div class="box-val" id="dailyAdj">--</div></div>
+  </div>
+  <div class="conv-box hide-k">
+    <div style="font-size:.84rem;font-weight:600;color:#d8b4fe;margin-bottom:.6rem" id="uiConvTitle">🔮 Traductor de Fechas y Carta Heliocéntrica</div>
+    <input type="date" id="birthInput" style="width:100%;max-width:220px" onchange="calcBirth()">
+    <div class="conv-res" id="birthRes"></div>
+    <div class="ics-row">
+      <button class="btn btn-purp" id="viewAlmBtn" style="display:none" onclick="jumpToSearched()">🗺️ Ver marcado</button>
+      <button class="btn btn-gold" id="cardBtn" style="display:none" onclick="makeOrbitalCard()">🪪 Carta 9:16</button>
+      <button class="btn" id="shareBirthBtn" style="display:none" onclick="copyBirth()">✨ Copiar</button>
+    </div>
+  </div>
+  <div class="conv-box hide-k">
+    <div style="font-size:.84rem;font-weight:600;color:#fbbf24;margin-bottom:.6rem" id="uiIcsTitle">📆 Agendar Evento Heliocéntrico (.ics)</div>
+    <input type="text" id="icsTitle" placeholder="Ej. Aniversario Heliocéntrico" style="width:100%;max-width:280px">
+    <div class="ics-row">
+      <select id="icsMonth" onchange="syncIcsDay()"></select>
+      <input type="number" id="icsDay" min="0" max="31" value="15" oninput="syncIcsDay()" style="width:62px;text-align:center">
+      <select id="icsYears">
+        <option value="1">1 año</option>
+        <option value="5">5 años</option>
+        <option value="10" selected>10 años</option>
+        <option value="25">25 años</option>
+        <option value="100">∞ Siempre</option>
+      </select>
+    </div>
+    <button class="btn btn-gold" id="icsBtn" style="margin-top:10px" onclick="downloadICS()">📥 Descargar Evento (.ics)</button>
+  </div>
+  <details class="hide-k">
+    <summary id="uiHowTitle">¿Cómo funciona el Calendario Heliocéntrico?</summary>
+    <p id="uiHow1"><strong>Síntesis histórica y astronómica:</strong> El antiguo calendario <em>egipcio</em> logró la simetría perfecta (12 meses de 30 días + 5 días adicionales), pero se desfasaba de las estaciones al carecer de ajuste solar. Los calendarios <em>juliano y gregoriano</em> corrigieron el clima a costa de destruir esa simetría con meses irregulares y años bisiestos. En 1793, el calendario <em>revolucionario</em> intentó restaurar la geometría decimal, pero fracasó al imponer jornadas agotadoras de 9 días de trabajo por apenas 1 de descanso.</p>
+    <p id="uiHow2">El <strong>Calendario Heliocéntrico</strong> es la síntesis dialéctica definitiva: conserva la simetría pura de 365 días (décadas de <strong>3d trabajo + ½ pausa ámbar + 3d trabajo + 3d descanso</strong> + Péntada de 5 días) y ancla la Tierra al Sol sin bisiestos mediante segundos elásticos continuos (+1s cada 62 años, omitido cada 4,340 y restablecido cada 125,860 años).</p>
+  </details>
+</div>
+<!-- FIN B -->
+
+
+
+
+<script>
+const EPOCH=Date.UTC(1793,10,17),LUNAR_REF=Date.UTC(2000,0,6,18,14,0),SYNODIC=29.53058867;
+let isEs=(navigator.language||"es").toLowerCase().indexOf("es")===0;
+const M_NAMES="I·Unario,II·Binario,III·Ternario,IV·Cuaternario,V·Quinario,VI·Senario,VII·Septenario,VIII·Octonario,IX·Nonario,X·Decenario,XI·Undecenario,XII·Duodenario,XIII·Péntada".split(",");
+const MOON_ES="de la Cosecha,del Cazador,del Castor,Fría,del Lobo,de Nieve,del Gusano,Rosa,de las Flores,de Fresa,del Ciervo,del Esturión,de Transición".split(",");
+const MOON_EN="Harvest,Hunter's,Beaver,Cold,Wolf,Snow,Worm,Pink,Flower,Strawberry,Buck,Sturgeon,Cusp".split(",");
+const D_DATA="Primidi,Duodi,Tridi,Quartidi,Quintidi,Sextidi,Septidi,Octidi,Nonidi,Décadi".split(",");
+const ASTRO_DAYS=",1,91,105,182,274,288,";
+let tsText="",birthShareText="",lastBuiltKey="",soundOn=false,lastElasticSec=-1,audioCtx=null,lastBeepTime=0,curOrbYear=234,curOrbDoy=65;
+let searchYear=-1,searchDoy=-1,searchGreg="",viewYear=-1,simDays=0;
+
+const selM=document.getElementById("icsMonth");
+for(let i=0;i<13;i++){const o=document.createElement("option");o.value=i;o.textContent=M_NAMES.at(i);selM.appendChild(o)}
+selM.value=3;
+
+function applyLang(){
+  document.documentElement.lang=isEs?"es":"en";
+  document.getElementById("langBtn").textContent=isEs?"🌐 EN":"🌐 ES";
+  document.getElementById("copyBtn").textContent="📋 Timestamp";
+  document.getElementById("anaBtn").textContent=isEs?"🕰️ Esfera":"🕰️ Dial";
+  document.getElementById("almBtn").textContent=isEs?"📅 Año 365":"📅 Year 365";
+  document.getElementById("simBtn").textContent=isEs?"🧭 Simular":"🧭 Simulate";
+  document.getElementById("bP6H").textContent=isEs?"+6 Horas":"+6 Hrs";
+  document.getElementById("resetSimBtn").textContent=isEs?"⏹ Hoy":"⏹ Today";
+
+
+  const kOn=document.body.classList.contains("kiosk");
+  document.getElementById("kioskBtn").textContent=kOn?(isEs?"✖ Salir":"✖ Exit"):(isEs?"🖥️ Kiosco":"🖥️ Kiosk");
+  document.getElementById("sndBtn").textContent=soundOn?(isEs?"🔊 Pulso":"🔊 Pulse"):(isEs?"🔇 Pulso":"🔇 Pulse");
+  document.getElementById("simTitle").textContent=isEs?"🧭 Simulador de Posición Heliocéntrica":"🧭 Heliocentric Position Simulator";
+  document.getElementById("simSub").textContent=isEs?"Recorre los 365 días del ciclo o ajusta por día, mes o año":"Scrub the 365-day cycle or step by day, month, or year";
+  document.getElementById("bM1Y").textContent=isEs?"-1 Año":"-1 Yr";
+  document.getElementById("bM1M").textContent=isEs?"-1 Mes":"-1 Mo";
+  document.getElementById("bM1D").textContent=isEs?"-1 Día":"-1 Day";
+  document.getElementById("bP1D").textContent=isEs?"+1 Día":"+1 Day";
+  document.getElementById("bP1M").textContent=isEs?"+1 Mes":"+1 Mo";
+  document.getElementById("bP1Y").textContent=isEs?"+1 Año":"+1 Yr";
+  document.getElementById("bM6H").textContent=isEs?"-6 Horas":"-6 Hrs";
+  document.getElementById("bP6H").textContent=isEs?"+6 Horas":"+6 Hrs";
+
+
+
+
+  document.getElementById("resetSimBtn").textContent=isEs?"⏹ Restablecer a Hoy":"⏹ Reset to Today";
+  document.getElementById("anaLeg").textContent=isEs?"🔵 Segundo Elástico Heliocéntrico • ⚪ Segundo Civil (Fantasma)":"🔵 Elastic Heliocentric Second • ⚪ Civil Second (Ghost)";
+  document.getElementById("almLegend").textContent=isEs?"🔵 Hoy • 🟣 Buscada • 🟢 Trabajo • 🟠 Medio • 🔴 Descanso":"🔵 Today • 🟣 Searched • 🟢 Work • 🟠 Half • 🔴 Rest";
+  document.getElementById("almNote").textContent=isEs?"👆 Toca cualquier día para ver su estado laboral y fecha civil.":"👆 Tap any day to see its work/rest status and civil date.";
+  document.getElementById("resetYearBtn").textContent=isEs?"↩ Volver al año actual":"↩ Return to current year";
+  document.getElementById("localLabel").textContent=isEs?"Hora Civil":"Civil Time";
+  document.getElementById("uiOffset").textContent=isEs?"Desfase Acumulado":"Daily Offset";
+  document.getElementById("uiTick").textContent=isEs?"Duración del Segundo":"Second Duration";
+  document.getElementById("uiAdj").textContent=isEs?"Ajuste Continuo (Hoy)":"Continuous Adj (Today)";
+  document.getElementById("uiConvTitle").textContent=isEs?"🔮 Traductor de Fechas y Carta Heliocéntrica":"🔮 Date Translator & Heliocentric Card";
+  document.getElementById("viewAlmBtn").textContent=isEs?"🗺️ Ver marcado":"🗺️ Highlight";
+  document.getElementById("cardBtn").textContent=isEs?"🪪 Carta 9:16":"🪪 Card 9:16";
+  document.getElementById("shareBirthBtn").textContent=isEs?"✨ Copiar":"✨ Copy";
+  document.getElementById("uiIcsTitle").textContent=isEs?"📆 Agendar Evento Heliocéntrico (.ics)":"📆 Schedule Heliocentric Event (.ics)";
+  document.getElementById("icsTitle").placeholder=isEs?"Ej. Aniversario Heliocéntrico":"e.g. Heliocentric Anniversary";
+  const yEl=document.getElementById("icsYears");
+  const curYVal=yEl?yEl.value:"10";
+  if(yEl){
+    yEl.innerHTML=isEs?'<option value="1">1 año</option><option value="5">5 años</option><option value="10">10 años</option><option value="25">25 años</option><option value="100">∞ Siempre</option>':'<option value="1">1 yr</option><option value="5">5 yrs</option><option value="10">10 yrs</option><option value="25">25 yrs</option><option value="100">∞ Always</option>';
+    yEl.value=curYVal;
+  }
+  document.getElementById("icsBtn").textContent=isEs?"📥 Descargar Evento (.ics)":"📥 Download Event (.ics)";
+  document.getElementById("uiHowTitle").textContent=isEs?"¿Cómo funciona el Calendario Heliocéntrico?":"How does the Heliocentric Calendar work?";
+  document.getElementById("uiHow1").innerHTML=isEs?'<strong>Síntesis histórica y astronómica:</strong> El antiguo calendario <em>egipcio</em> logró la simetría perfecta (12 meses de 30 días + 5 días adicionales), pero se desfasaba de las estaciones al carecer de ajuste solar. Los calendarios <em>juliano y gregoriano</em> corrigieron el clima a costa de destruir esa simetría con meses irregulares y años bisiestos. En 1793, el calendario <em>revolucionario</em> intentó restaurar la geometría decimal, pero fracasó al imponer jornadas agotadoras de 9 días de trabajo por apenas 1 de descanso.':'<strong>Historical & Astronomical Synthesis:</strong> The ancient <em>Egyptian</em> calendar achieved perfect symmetry (12 months of 30 days + 5 epagomenal days) but drifted from the seasons without solar correction. The <em>Julian and Gregorian</em> calendars fixed the seasons at the cost of irregular months and leap years. In 1793, the <em>Revolutionary</em> calendar attempted to restore decimal symmetry, yet failed by enforcing exhausting 9-day workweeks with only 1 day of rest.';
+  document.getElementById("uiHow2").innerHTML=isEs?'El <strong>Calendario Heliocéntrico</strong> es la síntesis dialéctica definitiva: conserva la simetría pura de 365 días (décadas de <strong>3d trabajo + ½ pausa ámbar + 3d trabajo + 3d descanso</strong> + Péntada de 5 días) y ancla la Tierra al Sol sin bisiestos mediante segundos elásticos continuos (+1s cada 62 años, omitido cada 4,340 y restablecido cada 125,860 años).':'The <strong>Heliocentric Calendar</strong> is the final dialectical synthesis: it preserves pure 365-day symmetry (decades of <strong>3d work + ½ amber pause + 3d work + 3d rest</strong> + 5-day Pentad) and locks Earth to the Sun without leap days via continuous elastic seconds (+1s every 62 yrs, omitted every 4,340, and restored every 125,860 yrs).';
+  lastBuiltKey="";
+  if(document.getElementById("birthInput").value)calcBirth();
+}
+
+function toggleLang(){isEs=!isEs;applyLang();update()}
+applyLang();
+// FIN C1
+
+
+
+
+
+function toggleSim(){document.getElementById("simBox").classList.toggle("open")}
+
+function slideDay(val){
+  const target=Math.min(365,Math.max(1,parseInt(val,10)||1));
+  const rNow=new Date();
+  const realOrb=calcOrbital(Date.UTC(rNow.getFullYear(),rNow.getMonth(),rNow.getDate()));
+  const yearDiff=curOrbYear-realOrb.yr;
+  simDays=(yearDiff*365)+(target-realOrb.doy);
+  update();
+}
+
+function jumpDays(d){simDays+=d;viewYear=-1}
+function resetSim(){simDays=0;viewYear=-1}
+
+function syncIcsDay(){
+  const mi=parseInt(document.getElementById("icsMonth").value,10);
+  const maxD=(mi===12)?5:30;
+  const inp=document.getElementById("icsDay");
+  let v=parseInt(inp.value,10);
+  if(isNaN(v))return;
+  if(v>maxD)v=1;else if(v<1)v=maxD;
+  inp.value=v;
+}
+
+function downloadICS(){
+  const title=(document.getElementById("icsTitle").value||"").trim()||(isEs?"Evento Heliocéntrico":"Heliocentric Event");
+  const mi=parseInt(document.getElementById("icsMonth").value,10);
+  const count=parseInt(document.getElementById("icsYears").value,10)||1;
+  const maxD=mi===12?5:30;
+  let dom=parseInt(document.getElementById("icsDay").value,10)||1;
+  if(dom<1)dom=1;if(dom>maxD)dom=maxD;
+  const doy=mi*30+dom;
+  const mLabel=M_NAMES.at(mi);
+  let ics="BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendario Heliocentrico//365//ES\r\n";
+  for(let k=0;k<count;k++){
+    const yr=curOrbYear+k;
+    const utcMs=EPOCH+((yr-1)*365+(doy-1))*86400000;
+    const dt=new Date(utcMs),dtNext=new Date(utcMs+86400000);
+    const s1=dt.getUTCFullYear()+pad(dt.getUTCMonth()+1)+pad(dt.getUTCDate());
+    const s2=dtNext.getUTCFullYear()+pad(dtNext.getUTCMonth()+1)+pad(dtNext.getUTCDate());
+    ics+="BEGIN:VEVENT\r\nUID:helio-"+yr+"-"+doy+"-"+k+"@heliocentric\r\nDTSTAMP:"+s1+"T000000Z\r\nDTSTART;VALUE=DATE:"+s1+"\r\nDTEND;VALUE=DATE:"+s2+"\r\nSUMMARY:"+title+" ("+mLabel+" "+dom+", "+(isEs?"Año ":"Yr ")+yr+")\r\nEND:VEVENT\r\n";
+  }
+  ics+="END:VCALENDAR\r\n";
+  const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="heliocentrico-"+mLabel.replace(/[^a-zA-Z0-9]/g,"")+"-"+dom+".ics";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function pad(n){return String(Math.floor(n)).padStart(2,"0")}
+function toggleAnalog(){document.getElementById("analogBox").classList.toggle("open")}
+function toggleAlmanac(){document.getElementById("almanacBox").classList.toggle("open")}
+
+function toggleKiosk(){
+  const on=document.body.classList.toggle("kiosk");
+  const b=document.getElementById("kioskBtn");
+  b.classList.toggle("btn-on",on);
+  b.textContent=on?(isEs?"✖ Salir":"✖ Exit"):(isEs?"🖥️ Kiosco":"🖥️ Kiosk");
+}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  if(soundOn&&!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(soundOn&&audioCtx.state==="suspended")audioCtx.resume();
+  const b=document.getElementById("sndBtn");
+  b.classList.toggle("btn-on",soundOn);
+  b.textContent=soundOn?(isEs?"🔊 Pulso":"🔊 Pulse"):(isEs?"🔇 Pulso":"🔇 Pulse");
+}
+
+function playTick(isMin){
+  if(!soundOn||!audioCtx)return;
+  const t=audioCtx.currentTime;
+  if(t-lastBeepTime<0.4)return;
+  lastBeepTime=t;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type="triangle";o.frequency.value=isMin?660:440;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(0.04,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+  o.connect(g);g.connect(audioCtx.destination);
+  o.start(t);o.stop(t+0.09);
+}
+
+const LAND_STR=[
+  "-130,55 -115,62 -80,62 -65,48 -80,25 -95,18 -85,10 -78,12 -98,20 -112,30 -124,45",
+  "-78,10 -62,8 -38,-6 -42,-22 -56,-36 -68,-52 -74,-42 -78,-15 -80,2",
+  "-10,36 0,43 10,45 25,42 35,55 25,65 10,60 -5,50",
+  "-15,32 10,36 32,30 48,12 40,-15 28,-33 16,-32 10,-5 -5,6 -16,15",
+  "35,55 65,68 115,68 145,60 135,35 115,22 102,12 85,22 72,20 55,25 40,38",
+  "115,-22 132,-14 150,-22 148,-36 130,-34 116,-32"
+];
+
+function updateEarth(uES){
+  const c=document.getElementById("earthGlobe");if(!c)return;
+  const g=c.getContext("2d"),W=84,R=37,cx=42,cy=42;
+  g.clearRect(0,0,W,W);
+  g.save();g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.clip();
+  const oc=g.createRadialGradient(cx+10,cy-8,4,cx,cy,R);
+  oc.addColorStop(0,"#1d4ed8");oc.addColorStop(1,"#0c1e3a");
+  g.fillStyle=oc;g.fillRect(0,0,W,W);
+
+  const subLon=((12-(uES/3600))*15+15)*Math.PI/180;
+  g.fillStyle="#34d399";
+  for(const row of LAND_STR){
+    let started=false;
+    g.beginPath();
+    for(const pair of row.split(" ")){
+      const [lo,la]=pair.split(",").map(Number);
+      const lon=lo*Math.PI/180-subLon,lat=la*Math.PI/180;
+      const z=Math.cos(lat)*Math.cos(lon);
+      const x=cx+R*Math.cos(lat)*Math.sin(lon);
+      const y=cy-R*Math.sin(lat);
+      if(z>-0.15){if(!started){g.moveTo(x,y);started=true}else g.lineTo(x,y)}
+    }
+    if(started){g.closePath();g.fill()}
+  }
+
+  const sh=g.createLinearGradient(cx-R,0,cx-R+24,0);
+  sh.addColorStop(0,"rgba(4,7,15,0.92)");
+  sh.addColorStop(0.55,"rgba(4,7,15,0.68)");
+  sh.addColorStop(1,"rgba(4,7,15,0)");
+  g.fillStyle=sh;g.fillRect(0,0,W,W);
+  g.restore();
+
+  g.strokeStyle="rgba(56,189,248,0.45)";g.lineWidth=2.5;
+  g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
+}
+
+
+function updateMoon(ms,mi){
+  const idx=(typeof mi==="number"&&mi>=0&&mi<13)?mi:2;
+  const d=(ms-LUNAR_REF)/86400000;
+  const anom=2*Math.PI*((d/27.554551)%1);
+  const corr=(0.41*Math.sin(anom)-0.17*Math.sin(2*anom))/SYNODIC;
+  const ph=((((d/SYNODIC)%1)+1)%1+corr+1)%1;
+  const age=(ph*SYNODIC).toFixed(1);
+  const illum=0.5*(1-Math.cos(2*Math.PI*ph));
+  const pct=Math.round(illum*100);
+  const mTitle=isEs?("Luna "+MOON_ES.at(idx)):(MOON_EN.at(idx)+" Moon");
+
+  let nm=isEs?"Llena":"Full";
+  if(illum<=0.02)nm=isEs?"Nueva":"New";
+  else if(ph<0.5&&illum<0.45)nm=isEs?"Creciente":"Waxing Crescent";
+  else if(ph<0.5&&illum<=0.55)nm=isEs?"Cuarto Creciente":"First Quarter";
+  else if(ph<0.5&&illum<0.98)nm=isEs?"Gibosa Creciente":"Waxing Gibbous";
+  else if(illum>=0.98)nm=isEs?"Llena":"Full";
+  else if(ph>0.5&&illum>0.55)nm=isEs?"Gibosa Menguante":"Waning Gibbous";
+  else if(ph>0.5&&illum>=0.45)nm=isEs?"Cuarto Menguante":"Last Quarter";
+  else nm=isEs?"Menguante":"Waning Crescent";
+
+  document.getElementById("moonName").textContent=mTitle+" • "+nm;
+  document.getElementById("moonPct").textContent="💡 "+pct+"%";
+  document.getElementById("moonAge").textContent="🌑 "+age+"d";
+
+  const base=document.getElementById("moonBase");
+  const term=document.getElementById("moonTerm");
+  const wax=ph<=0.5;
+  base.setAttribute("d",wax?"M 50 8 A 42 42 0 0 1 50 92 Z":"M 50 8 A 42 42 0 0 0 50 92 Z");
+  const rx=Math.abs(Math.cos(2*Math.PI*ph))*42;
+  term.setAttribute("rx",rx.toFixed(2));
+  term.setAttribute("fill",illum>=0.5?"#f3f4f6":"#182030");
+}
+// FIN C2
+
+
+
+
+
+function showDayNote(doy,mName,dom){
+  const yr=(viewYear>0)?viewYear:curOrbYear;
+  const gDt=new Date(EPOCH+((yr-1)*365+(doy-1))*86400000);
+  const gStr=pad(gDt.getUTCDate())+"/"+pad(gDt.getUTCMonth()+1)+"/"+gDt.getUTCFullYear();
+  const isPentad=doy>360;
+  const mod=(dom-1)%10;
+  const isRest=isPentad||(mod>=7);
+  const isHalf=!isPentad&&(mod===3);
+  let status=isRest?(isEs?"🔴 Un día normal de descanso.":"🔴 A normal rest day."):isHalf?(isEs?"🟠 Un día de medio-descanso (pausa de mitad de década).":"🟠 A half-rest day (mid-decade pause)."):(isEs?"🟢 Un día normal de trabajo.":"🟢 A normal work day.");
+  if(doy===1)status+=(isEs?" • 🟡 Equinoccio de Otoño.":" • 🟡 Autumn Equinox.");
+  if(doy===91)status+=(isEs?" • 🟡 Solsticio de Invierno.":" • 🟡 Winter Solstice.");
+  if(doy===105)status+=(isEs?" • 🟡 Perihelio (+145s/día).":" • 🟡 Perihelion (+145s/day).");
+  if(doy===182)status+=(isEs?" • 🟡 Equinoccio de Primavera.":" • 🟡 Spring Equinox.");
+  if(doy===274)status+=(isEs?" • 🟡 Solsticio de Verano.":" • 🟡 Summer Solstice.");
+  if(doy===288)status+=(isEs?" • 🟡 Afelio (-30.34s/día).":" • 🟡 Aphelion (-30.34s/day).");
+  if(doy===365)status+=(isEs?" • 🟡 Salto +1.00s cada 62 años (omitido cada 4,340; restablecido cada 125,860).":" • 🟡 +1.00s every 62 yrs (omitted every 4,340; restored every 125,860).");
+  let prefix="";
+  if(yr===curOrbYear&&doy===curOrbDoy)prefix=isEs?"🔵 HOY • ":"🔵 TODAY • ";
+  else if(yr===searchYear&&doy===searchDoy)prefix=isEs?"🟣 BUSCADA • ":"🟣 SEARCHED • ";
+  document.getElementById("almNote").textContent=prefix+mName+" "+dom+" ("+gStr+"): "+status;
+}
+
+function buildAlmanac(yr){
+  const key=yr+"-"+curOrbYear+"-"+curOrbDoy+"-"+searchYear+"-"+searchDoy+"-"+(isEs?"es":"en");
+  if(key===lastBuiltKey)return;
+  lastBuiltKey=key;
+  const isLeap=(yr%62===0&&yr%4340!==0)||yr%125860===0;
+  let nextL=(Math.floor(yr/62)+1)*62;
+  if(nextL%4340===0&&nextL%125860!==0)nextL+=62;
+  document.getElementById("almTitle").textContent=(isEs?"Almanaque • Año ":"Almanac • Year ")+yr;
+  document.getElementById("almSecular").textContent=isLeap?(isEs?"¡Año de +1s!":"+1s Leap Year!"):((isEs?"Próx +1s: Año ":"Next +1s: Yr ")+nextL);
+  document.getElementById("resetYearBtn").style.display=(yr!==curOrbYear)?"block":"none";
+  let html="",dc=1;
+  for(let m=0;m<13;m++){
+    const mName=M_NAMES.at(m),maxD=m===12?5:30;
+    html+='<div class="m-card" style="'+(m===12?'grid-column:span 2':'')+'"><div class="m-name"><span>'+mName+'</span><span style="color:#6b7280;font-weight:400">'+(m===12?(isEs?'5d Festivo':'5d Holiday'):'3+½+3+3')+'</span></div><div class="m-days">';
+    for(let d=1;d<=maxD;d++){
+      let cls="d-cell";
+      const mod=(d-1)%10;
+      const isRest=(m===12)||(mod>=7);
+      const isHalf=(m<12)&&(mod===3);
+      cls+=isRest?" d-rest":isHalf?" d-half":" d-work";
+      if(m===12&&d===5)cls+=" d-leap";
+      else if(ASTRO_DAYS.indexOf(","+dc+",")!==-1)cls+=" d-astro";
+      if(yr===curOrbYear&&dc===curOrbDoy)cls+=" d-today";
+      if(yr===searchYear&&dc===searchDoy)cls+=" d-search";
+      html+='<div class="'+cls+'" onclick="showDayNote('+dc+',\''+mName+'\','+d+')">'+d+'</div>';
+      dc++;
+    }
+    html+='</div></div>';
+  }
+  document.getElementById("almGrid").innerHTML=html;
+}
+
+function jumpToSearched(){
+  if(searchYear<1)return;
+  viewYear=searchYear;
+  lastBuiltKey="";
+  buildAlmanac(viewYear);
+  const box=document.getElementById("almanacBox");
+  box.classList.add("open");
+  const mi=Math.floor((searchDoy-1)/30),dom=((searchDoy-1)%30)+1;
+  showDayNote(searchDoy,M_NAMES.at(mi),dom);
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function resetAlmanacToday(){
+  viewYear=curOrbYear;
+  lastBuiltKey="";
+  buildAlmanac(viewYear);
+  const mi=Math.floor((curOrbDoy-1)/30),dom=((curOrbDoy-1)%30)+1;
+  showDayNote(curOrbDoy,M_NAMES.at(mi),dom);
+}
+// FIN D1
+
+
+
+
+function updateEraBanner(orb){
+  const b=document.getElementById("eraBanner");
+  let msg="";
+  if(orb.doy===1)msg=isEs?"✨ ¡Feliz Año Nuevo Heliocéntrico! Equinoccio de Otoño (Día 1)":"✨ Happy Heliocentric New Year! Autumn Equinox (Day 1)";
+  else if(orb.doy===91)msg=isEs?"❄️ Solsticio de Invierno • Noche más larga del ciclo":"❄️ Winter Solstice • Longest night of the cycle";
+  else if(orb.doy===105)msg=isEs?"🚀 Perihelio • La Tierra alcanza su velocidad máxima (+145s/día)":"🚀 Perihelion • Earth reaches peak orbital speed (+145s/day)";
+  else if(orb.doy===182)msg=isEs?"🌱 Equinoccio de Primavera • Equilibrio perfecto día/noche":"🌱 Spring Equinox • Perfect day/night balance";
+  else if(orb.doy===274)msg=isEs?"☀️ Solsticio de Verano • Día más largo del ciclo":"☀️ Summer Solstice • Longest day of the cycle";
+  else if(orb.doy===288)msg=isEs?"🛸 Afelio • La Tierra alcanza su órbita más lenta (-30.34s/día)":"🛸 Aphelion • Earth reaches slowest orbital speed (-30.34s/day)";
+  else if(orb.mi===12)msg=isEs?"🎉 Péntada del Comité • 5 días de descanso y cierre de año":"🎉 Committee Pentad • 5 days of rest & year-end festival";
+  else if((orb.dom-1)%10===3)msg=isEs?"🟠 Quartidi • Medio-descanso y pausa de mitad de década":"🟠 Quartidi • Half-rest & mid-decade pause";
+  else if((orb.dom-1)%10===7)msg=isEs?"🔴 Inicio de Descanso • Hoy comienzan los 3 días libres de la década":"🔴 Rest Period Begins • 3 days off start today";
+  else if((orb.dom-1)%10===0)msg=isEs?"🟢 Primidi • Inicio de nueva década (3d trabajo + pausa)":"🟢 Primidi • Start of a new decade (3d work + pause)";
+  if(msg){b.textContent=msg;b.classList.add("show")}
+  else{b.textContent=isEs?"🌌 Órbita estable • Flujo cronométrico regular":"🌌 Stable orbit • Regular chronometric flow";b.classList.remove("show")}
+}
+
+function calcOrbital(utcMs){
+  const days=Math.floor((utcMs-EPOCH)/86400000),yr=Math.floor(days/365)+1,rem=((days%365)+365)%365;
+  const doy=rem+1,mi=Math.floor(rem/30),dom=(rem%30)+1,mName=M_NAMES.at(mi);
+  let adj=57.329315+87.670685*Math.cos(2*Math.PI*(doy-105)/365);
+  if(((yr%62===0&&yr%4340!==0)||yr%125860===0)&&mi===12&&dom===5)adj+=1;
+  const dec=Math.floor((dom-1)/10)+1,dName=D_DATA.at((dom-1)%10);
+  const mod=(dom-1)%10;
+  const isRest=(mi===12)||(mod>=7);
+  const isHalf=(mi<12)&&(mod===3);
+  const tag=isRest?(isEs?"🔴 Descanso":"🔴 Rest"):isHalf?(isEs?"🟠 Medio-descanso":"🟠 Half-rest"):(isEs?"🟢 Trabajo":"🟢 Work");
+  const dLine=mi===12?(dName+" • Péntada ("+tag+")"):(dName+(isEs?" • Década ":" • Decade ")+dec+"/3 • "+tag);
+  return{yr,doy,mi,dom,adj,label:mName,dLine,dName};
+}
+
+function calcBirth(){
+  const v=document.getElementById("birthInput").value;if(!v)return;
+  const orb=calcOrbital(Date.UTC(+v.slice(0,4),+v.slice(5,7)-1,+v.slice(8,10)));
+  searchYear=orb.yr;searchDoy=orb.doy;searchGreg=v;
+  const nextG=new Date(EPOCH+((curOrbYear-1)*365+(orb.doy-1))*86400000);
+  const gNowStr=pad(nextG.getUTCDate())+"/"+pad(nextG.getUTCMonth()+1)+"/"+nextG.getUTCFullYear();
+  const res=orb.dName+", "+(isEs?"Día ":"Day ")+orb.dom+(isEs?" de ":" of ")+orb.label+(isEs?" • Año ":" • Year ")+orb.yr;
+  const sub=isEs?("📅 En el Año "+curOrbYear+", este día heliocéntrico cae el "+gNowStr+" (sin bisiestos)."):("📅 In Year "+curOrbYear+", this heliocentric day falls on "+gNowStr+" (no leap days).");
+  document.getElementById("birthRes").innerHTML=res+'<div style="font-size:.78rem;color:#9ca3af;margin-top:4px">'+sub+'</div>';
+  birthShareText=res+" ("+window.location.href+")";
+  document.getElementById("shareBirthBtn").style.display="inline-block";
+  document.getElementById("viewAlmBtn").style.display="inline-block";
+  document.getElementById("cardBtn").style.display="inline-block";
+  jumpToSearched();
+}
+// FIN D2-A
+
+
+function makeOrbitalCard(){
+  if(!searchGreg)return;
+  const ms=Date.UTC(+searchGreg.slice(0,4),+searchGreg.slice(5,7)-1,+searchGreg.slice(8,10));
+  const orb=calcOrbital(ms);
+  const c=document.createElement("canvas");
+  c.width=1080;c.height=1920;
+  const g=c.getContext("2d");
+
+  const bg=g.createLinearGradient(0,0,0,1920);
+  bg.addColorStop(0,"#060913");bg.addColorStop(0.5,"#0f172a");bg.addColorStop(1,"#060913");
+  g.fillStyle=bg;g.fillRect(0,0,1080,1920);
+
+  g.strokeStyle="rgba(56,189,248,0.28)";g.lineWidth=4;
+  g.strokeRect(56,56,968,1808);
+  g.strokeStyle="rgba(251,191,36,0.2)";g.lineWidth=2;
+  g.strokeRect(76,76,928,1768);
+
+  g.textAlign="center";
+  g.fillStyle="#38bdf8";g.font="700 30px system-ui,sans-serif";
+  g.fillText(isEs?"IDENTIDAD HELIOCÉNTRICA • ARCHIVO ASTRONÓMICO":"HELIOCENTRIC IDENTITY • ASTRONOMICAL ARCHIVE",540,175);
+
+  g.fillStyle="#9ca3af";g.font="600 34px system-ui,sans-serif";
+  g.fillText((isEs?"AÑO HELIOCÉNTRICO ":"HELIOCENTRIC YEAR ")+orb.yr+"  •  "+(isEs?"DÍA ":"DAY ")+orb.doy+" / 365",540,245);
+
+  g.fillStyle="#f8fafc";g.font="800 128px system-ui,sans-serif";
+  g.fillText(orb.dName.toUpperCase(),540,420);
+
+  g.fillStyle="#38bdf8";g.font="700 58px system-ui,sans-serif";
+  g.fillText((isEs?"Día ":"Day ")+orb.dom+(isEs?" de ":" of ")+orb.label,540,515);
+
+  const mod=(orb.dom-1)%10;
+  const isRest=(orb.mi===12)||(mod>=7);
+  const isHalf=(orb.mi<12)&&(mod===3);
+  const pillCol=isRest?"#ef4444":isHalf?"#f97316":"#22c55e";
+  const pillTxt=isRest?(isEs?"🔴 DESCANSO DEL COMITÉ":"🔴 COMMITTEE REST DAY"):isHalf?(isEs?"🟠 PAUSA ÁMBAR • MEDIO-DESCANSO":"🟠 AMBER PAUSE • HALF-REST"):(isEs?"🟢 JORNADA LABORAL ACTIVA":"🟢 ACTIVE WORK DAY");
+  g.fillStyle="rgba(15,23,42,0.9)";g.strokeStyle=pillCol;g.lineWidth=4;
+  g.beginPath();g.roundRect(210,575,660,84,42);g.fill();g.stroke();
+  g.fillStyle=pillCol;g.font="700 34px system-ui,sans-serif";
+  g.fillText(pillTxt,540,628);
+
+  const ox=540,oy=960,rx=350,ry=195;
+  g.strokeStyle="#1e293b";g.lineWidth=14;
+  g.beginPath();g.ellipse(ox,oy,rx,ry,0,0,Math.PI*2);g.stroke();
+
+  const frac=(orb.doy-1)/365,ang=frac*Math.PI*2;
+  g.strokeStyle="#38bdf8";g.lineWidth=14;g.lineCap="round";
+  g.beginPath();g.ellipse(ox,oy,rx,ry,0,0,ang);g.stroke();
+
+  const gx=ox-125,gy=oy,gr=96;
+  g.save();g.beginPath();g.arc(gx,gy,gr,0,Math.PI*2);g.clip();
+  const oc=g.createRadialGradient(gx+26,gy-20,10,gx,gy,gr);
+  oc.addColorStop(0,"#1d4ed8");oc.addColorStop(1,"#0c1e3a");
+  g.fillStyle=oc;g.fillRect(gx-gr,gy-gr,gr*2,gr*2);
+  const cardLon=(-65)*Math.PI/180;
+  g.fillStyle="#34d399";
+  for(const row of LAND_STR){
+    let started=false;
+    g.beginPath();
+    for(const pair of row.split(" ")){
+      const [lo,la]=pair.split(",").map(Number);
+      const lon=lo*Math.PI/180-cardLon,lat=la*Math.PI/180;
+      const z=Math.cos(lat)*Math.cos(lon);
+      const x=gx+gr*Math.cos(lat)*Math.sin(lon);
+      const y=gy-gr*Math.sin(lat);
+      if(z>-0.15){if(!started){g.moveTo(x,y);started=true}else g.lineTo(x,y)}
+    }
+    if(started){g.closePath();g.fill()}
+  }
+  const sh=g.createLinearGradient(gx-gr,0,gx-gr+64,0);
+  sh.addColorStop(0,"rgba(4,7,15,0.92)");sh.addColorStop(0.55,"rgba(4,7,15,0.65)");sh.addColorStop(1,"rgba(4,7,15,0)");
+  g.fillStyle=sh;g.fillRect(gx-gr,gy-gr,gr*2,gr*2);
+  g.restore();
+  g.strokeStyle="rgba(56,189,248,0.45)";g.lineWidth=4;
+  g.beginPath();g.arc(gx,gy,gr,0,Math.PI*2);g.stroke();
+
+  g.fillStyle="#fbbf24";
+  g.beginPath();g.arc(ox+165,oy,38,0,Math.PI*2);g.fill();
+
+  const ex=ox+rx*Math.cos(ang),ey=oy+ry*Math.sin(ang);
+  g.fillStyle="#38bdf8";
+  g.beginPath();g.arc(ex,ey,24,0,Math.PI*2);g.fill();
+  g.strokeStyle="#ffffff";g.lineWidth=5;g.stroke();
+
+  g.fillStyle="#94a3b8";g.font="600 30px system-ui,sans-serif";
+  g.fillText((isEs?"POSICIÓN HELIOCÉNTRICA: ":"HELIOCENTRIC POSITION: ")+(frac*100).toFixed(1)+"%",540,1225);
+
+  const ld=(ms+43200000-LUNAR_REF)/86400000;
+  const anom=2*Math.PI*((ld/27.554551)%1);
+  const corr=(0.41*Math.sin(anom)-0.17*Math.sin(2*anom))/SYNODIC;
+  const ph=((((ld/SYNODIC)%1)+1)%1+corr+1)%1;
+  const illum=Math.round(50*(1-Math.cos(2*Math.PI*ph)));
+  const mTitle=isEs?("Luna "+MOON_ES.at(orb.mi)):(MOON_EN.at(orb.mi)+" Moon");
+
+  const mx=540,my=1410,mr=76;
+  g.fillStyle="#1e293b";g.beginPath();g.arc(mx,my,mr,0,Math.PI*2);g.fill();
+  g.save();g.beginPath();g.arc(mx,my,mr,0,Math.PI*2);g.clip();
+  g.fillStyle="#f1f5f9";
+  g.beginPath();g.arc(mx,my,mr,-Math.PI/2,Math.PI/2,ph>0.5);g.fill();
+  const tr=Math.abs(Math.cos(2*Math.PI*ph))*mr;
+  g.fillStyle=illum>=50?"#f1f5f9":"#1e293b";
+  g.beginPath();g.ellipse(mx,my,tr,mr,0,0,Math.PI*2);g.fill();
+  g.restore();
+  g.strokeStyle="#475569";g.lineWidth=4;g.beginPath();g.arc(mx,my,mr,0,Math.PI*2);g.stroke();
+
+  g.fillStyle="#e2e8f0";g.font="700 36px system-ui,sans-serif";
+  g.fillText(mTitle+" • "+illum+"%",540,1545);
+
+  const adjTxt=(orb.adj>=0?"+":"")+orb.adj.toFixed(2)+(isEs?" s/día":" s/day");
+  g.fillStyle="#fbbf24";g.font="600 32px system-ui,sans-serif";
+  g.fillText((isEs?"Ajuste Elástico Heliocéntrico: ":"Elastic Heliocentric Adj: ")+adjTxt,540,1640);
+
+  g.fillStyle="#64748b";g.font="600 28px system-ui,sans-serif";
+  g.fillText(window.location.host||"Calendario Heliocéntrico • 365",540,1780);
+
+  const a=document.createElement("a");
+  a.download="carta-heliocentrica-"+orb.yr+"-"+orb.doy+".png";
+  a.href=c.toDataURL("image/png");
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+
+
+function copyBirth(){if(navigator.clipboard&&birthShareText)navigator.clipboard.writeText(birthShareText)}
+function copyTs(){if(navigator.clipboard&&tsText)navigator.clipboard.writeText(tsText)}
+function setHand(id,deg){document.getElementById(id).setAttribute("transform","rotate("+deg.toFixed(2)+" 60 60)")}
+
+function update(){
+  const simMs=simDays*86400000;
+  const rNow=new Date(Date.now()+simMs);
+  const badge=document.getElementById("topBadge");
+  if(simDays===0){
+    badge.textContent=isEs?"CALENDARIO HELIOCÉNTRICO • v1.2":"HELIOCENTRIC CALENDAR • v1.2";
+    badge.classList.remove("sim");
+  }else{
+    badge.textContent=(isEs?"🧭 SIMULACIÓN (":"🧭 SIMULATION (")+(simDays>0?"+":"")+simDays+"d)";
+    badge.classList.add("sim");
+  }
+
+  const uOrb=calcOrbital(Date.UTC(rNow.getUTCFullYear(),rNow.getUTCMonth(),rNow.getUTCDate()));
+  const uES=(rNow.getUTCHours()*3600+rNow.getUTCMinutes()*60+rNow.getUTCSeconds()+rNow.getUTCMilliseconds()/1000)/((86400+uOrb.adj)/86400);
+  const uTS=pad(uES/3600)+":"+pad((uES%3600)/60)+":"+pad(uES%60),uC=isEs?"TUH":"HUT";
+  document.getElementById("tuoDisplay").textContent="🌐 "+uC+": "+uTS+" • "+uOrb.label+" "+pad(uOrb.dom);
+
+  let now=new Date(Date.now()+simMs),off=now.getTimezoneOffset(),city="Local";
+  if(off===0){now=new Date(now.getTime()-6*3600000);city="Monterrey"}
+  const y=off===0?now.getUTCFullYear():now.getFullYear(),mo=off===0?now.getUTCMonth():now.getMonth(),d=off===0?now.getUTCDate():now.getDate();
+  const h=off===0?now.getUTCHours():now.getHours(),mi=off===0?now.getUTCMinutes():now.getMinutes(),s=off===0?now.getSeconds():now.getSeconds(),ms=off===0?now.getUTCMilliseconds():now.getMilliseconds();
+
+  const orb=calcOrbital(Date.UTC(y,mo,d));
+  curOrbYear=orb.yr;curOrbDoy=orb.doy;
+  const sld=document.getElementById("daySlider");
+  if(sld&&document.activeElement!==sld)sld.value=orb.doy;
+  if(viewYear<0)viewYear=orb.yr;
+  updateEraBanner(orb);
+  updateEarth(uES);
+  updateMoon(rNow.getTime(),orb.mi);
+  if(document.getElementById("almanacBox").classList.contains("open"))buildAlmanac(viewYear);
+
+  const nSec=h*3600+mi*60+s+ms/1000,dur=(86400+orb.adj)/86400,eSec=nSec/dur,diff=eSec-nSec,absD=Math.abs(diff);
+  const curESec=Math.floor(eSec);
+  if(curESec!==lastElasticSec){if(lastElasticSec!==-1)playTick(curESec%60===0);lastElasticSec=curESec}
+
+  const tStr=pad(eSec/3600)+":"+pad((eSec%3600)/60)+":"+pad(eSec%60);
+  tsText=(isEs?"Año ":"Year ")+orb.yr+" • "+orb.label+" "+pad(orb.dom)+" ("+orb.dName+") • "+tStr+" ("+uC+" "+uTS+")";
+
+  setHand("hHand",(eSec%43200)/120);setHand("mHand",(eSec%3600)/10);
+  setHand("cSecHand",(nSec%60)*6);setHand("eSecHand",(eSec%60)*6);
+
+  const frac=(orb.doy-1+eSec/86400)/365,ang=frac*2*Math.PI;
+  const arc=document.getElementById("orbitArc"),dot=document.getElementById("earthDot");
+  arc.setAttribute("stroke",simDays!==0?"#22c55e":"#38bdf8");
+  dot.setAttribute("fill",simDays!==0?"#22c55e":"#38bdf8");
+  arc.setAttribute("stroke-dashoffset",(176.5*(1-frac)).toFixed(2));
+  dot.setAttribute("cx",(41+35*Math.cos(ang)).toFixed(2));
+  dot.setAttribute("cy",(26+20*Math.sin(ang)).toFixed(2));
+  document.getElementById("orbitPct").textContent=(isEs?"Día ":"Day ")+orb.doy+" / 365 • "+(frac*100).toFixed(1)+"%";
+  const ev=orb.doy<45?(isEs?"Post-Equinoccio":"Post-Equinox"):orb.doy<90?(isEs?"Hacia Solsticio de Invierno":"Approaching Winter Solstice"):orb.doy<120?(isEs?"Perihelio • Máxima velocidad":"Perihelion • Peak speed"):orb.doy<180?(isEs?"Hacia Equinoccio Primavera":"Approaching Spring Equinox"):orb.doy<270?(isEs?"Hacia Solsticio de Verano":"Approaching Summer Solstice"):orb.doy<305?(isEs?"Afelio • Órbita más lenta":"Aphelion • Slower orbit"):(isEs?"Hacia Equinoccio de Otoño":"Approaching Autumn Equinox");
+  document.getElementById("orbitEvt").textContent=ev;
+
+  document.getElementById("elasticClock").textContent=tStr;
+  document.getElementById("orbitalDate").textContent=(isEs?"Día ":"Day ")+orb.dom+(isEs?" de ":" of ")+orb.label+(isEs?" • Año ":" • Year ")+orb.yr;
+  document.getElementById("decadeInfo").textContent=orb.dLine;
+  document.getElementById("gregorianRef").textContent=city+": "+pad(d)+"/"+pad(mo+1)+"/"+y;
+  document.getElementById("normalClock").textContent=pad(h)+":"+pad(mi)+":"+pad(s);
+  document.getElementById("offsetInfo").textContent=(diff>=0?"+":"-")+Math.floor(absD/60)+"m "+(absD%60).toFixed(1)+"s";
+  document.getElementById("tickInfo").textContent=dur.toFixed(6)+" s";
+  document.getElementById("dailyAdj").textContent=(orb.adj>=0?"+":"")+orb.adj.toFixed(2)+" s";
+}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+setInterval(update,100);update();
+</script>
+</body>
+</html>
+<!-- FIN -->
+
